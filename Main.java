@@ -12,15 +12,11 @@ public class Main {
     //Negative diff means needs to be reimbursed |x| more
     public static void main(String[] args) {
         TreeMap<String, int[]> payMap = new TreeMap<>();
-        payMap.put("A Jack", new int[] {10, 20});
-        payMap.put("B Jill", new int[] {25, 10});
-        payMap.put("C Varun", new int[] {10, 10});
-        payMap.put("D Veda", new int[] {5, 10});
-        payMap.put("E Sanaa", new int[] {7, 7});
-        payMap.put("F Sam", new int[] {15, 5});
-        payMap.put("G Ianz", new int[] {5, 15});
+        payMap.put("Sanaa", new int[] {5, 52});
+        payMap.put("Varun", new int[] {60, 29});
+        payMap.put("Megan", new int[] {50, 23});
+        payMap.put("Vicki", new int[] {50, 61});
 
-        
         Iterator<String> nameitr = payMap.keySet().iterator();
         while(nameitr.hasNext()) {
            names.add(nameitr.next());
@@ -39,43 +35,63 @@ public class Main {
             for(int[] x : payMap.values()) {
                 diffArr.add(x[1]-x[0]);
             }
-            System.out.println(diffArr);
-            boolean foundCombo = true;
-            while(foundCombo) {
-                listStatus();
-                foundCombo = false;
-                for (int i = 1; i < diffArr.size(); i++) {
-                    int leastIndex = identifyLeast();
-                    try {
-                        comboFinder(0, 0, new int[i], diffArr.get(leastIndex));
-                    } catch (FoundCombinationException e) {
-                        //e.printStackTrace();
-                    }
-                    if(foundComboArr != null) {
-                        foundCombo = true;
-                        for(int x : foundComboArr) {
-                            System.out.println(names.get(x) + " needs to pay $" + diffArr.get(x) + " to " + names.get(leastIndex));
-                            diffArr.set(x, 0);
-                        }
-                        diffArr.set(leastIndex, 0);
-                        break;
-                    }
-                }   
-            }
-            if(listStatus()) {
-                System.out.println("All transactions complete!");
-            } else {
-                System.out.println(diffArr);
-                //TODO: Split bills/non even adds logic
-            }  
+            comboChecker();
         }   
+    }
+
+    private static void comboChecker() {
+        boolean foundCombo = true;
+        while(foundCombo) {
+            listStatus();
+            foundComboArr = null;
+            foundCombo = false;
+            for (int i = 1; i < diffArr.size(); i++) {
+                int leastIndex = identifyLeast();
+                try {
+                    comboFinder(0, 0, new int[i], diffArr.get(leastIndex));
+                } catch (FoundCombinationException e) {
+                    //e.printStackTrace();
+                }
+                if(foundComboArr != null) {
+                    foundCombo = true;
+                    for(int x : foundComboArr) {
+                        System.out.println(names.get(x) + " needs to pay $" + diffArr.get(x) + " to " + names.get(leastIndex));
+                        diffArr.set(x, 0);
+                    }
+                    diffArr.set(leastIndex, 0);
+                    break;
+                }
+            }
+        }
+        if(listStatus()) {
+            System.out.println("All transactions complete!");
+        } else {
+            splitChecker();
+        }  
+    }
+
+    private static void splitChecker() {
+        while(!listStatus()) {
+            boolean foundSplit = false;
+            int bigOwe = identifyGreatest();
+            for (int i = 0; i < diffArr.size(); i++) {
+                if(diffArr.get(i) < 0 && -1*diffArr.get(i) <= diffArr.get(bigOwe)) {
+                    System.out.println(names.get(bigOwe) + " needs to pay $" + -1*diffArr.get(i) + " to " + names.get(i));
+                    diffArr.set(bigOwe, diffArr.get(bigOwe) + diffArr.get(i));
+                    diffArr.set(i, 0);
+                    foundSplit = true;
+                }
+            }
+            if(!foundSplit) {
+                comboChecker();
+            }
+        }
     }
 
     private static boolean listStatus() {
         for (int i = 0; i < diffArr.size(); i++) {
             if(diffArr.get(i) == 0) {
-                System.out.println(names.get(i) + "'s payment is done");
-                diffArr.set(i, 0);
+                //System.out.println(names.get(i) + "'s payment is done");
                 names.set(i, "");
             }
         }
@@ -100,11 +116,23 @@ public class Main {
         return ret_val;
     }
 
+    private static int identifyGreatest() {
+        int greatestInt = Integer.MIN_VALUE;
+        int ret_val = -1;
+        for (int i = 0; i < diffArr.size(); i++) {
+            if(diffArr.get(i) > greatestInt) {
+                greatestInt = diffArr.get(i);
+                ret_val = i;
+            }
+        }
+        return ret_val;
+    }
+
     private static int[] comboFinder(int index, int sumLevel, int[] num, int sumToFind) throws FoundCombinationException {
         if(sumLevel == num.length) {
             int sum = 0;
             for(int x : num) {
-                sum+=diffArr.get(x);
+                sum+=diffArr.get(x)<0?Integer.MAX_VALUE:diffArr.get(x);
             }
             if(sum == sumToFind*-1) {
                 foundComboArr = num;
@@ -112,7 +140,7 @@ public class Main {
             }
         } else {
             for (int i = 0; i < diffArr.size(); i++) {
-                if(index == 0 || !numExists(num, diffArr.get(i))) {
+                if(index == 0 || !numExists(num, i)) {
                     num[index] = i;
                     comboFinder(index+1, sumLevel+1, num, sumToFind);
                 }
@@ -128,5 +156,11 @@ public class Main {
             }
         }
         return false;
+    }
+
+    private static void printDiffs() {
+        for (int i = 0; i < diffArr.size(); i++) {
+            System.out.println(names.get(i) + ": " + diffArr.get(i));
+        }
     }
 }
