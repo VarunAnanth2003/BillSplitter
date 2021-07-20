@@ -12,10 +12,10 @@ public class Main {
     //Negative diff means needs to be reimbursed |x| more
     public static void main(String[] args) {
         TreeMap<String, int[]> payMap = new TreeMap<>();
-        payMap.put("Sanaa", new int[] {5, 52});
-        payMap.put("Varun", new int[] {60, 29});
-        payMap.put("Megan", new int[] {50, 23});
-        payMap.put("Vicki", new int[] {50, 61});
+        payMap.put("Sanaa", new int[] {25, 20});
+        payMap.put("Varun", new int[] {15, 5});
+        payMap.put("Megan", new int[] {0, 10});
+        payMap.put("Vicki", new int[] {15, 20});
 
         Iterator<String> nameitr = payMap.keySet().iterator();
         while(nameitr.hasNext()) {
@@ -35,6 +35,7 @@ public class Main {
             for(int[] x : payMap.values()) {
                 diffArr.add(x[1]-x[0]);
             }
+            printDiffs();
             comboChecker();
         }   
     }
@@ -51,9 +52,13 @@ public class Main {
                     comboFinder(0, 0, new int[i], diffArr.get(leastIndex));
                 } catch (FoundCombinationException e) {
                     //e.printStackTrace();
+                    
                 }
                 if(foundComboArr != null) {
                     foundCombo = true;
+                    if(foundComboArr.length > 1) {
+                        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    }
                     for(int x : foundComboArr) {
                         System.out.println(names.get(x) + " needs to pay $" + diffArr.get(x) + " to " + names.get(leastIndex));
                         diffArr.set(x, 0);
